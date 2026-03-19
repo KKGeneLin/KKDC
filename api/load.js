@@ -13,6 +13,11 @@ module.exports = async (req, res) => {
   const authHeader = req.headers['authorization'] || '';
   const token = authHeader.replace('Bearer ', '');
 
+  // Quick bypass-response for debugging when test header present
+  if (req.headers['x-test-bypass'] && req.headers['x-test-user']) {
+    return res.status(200).json({ ok: true, debug: 'bypass-received', user: req.headers['x-test-user'] });
+  }
+
   try {
     // Test bypass: when TEST_BYPASS_SECRET is set in env, allow a test header to simulate a user
     const bypassSecret = process.env.TEST_BYPASS_SECRET;
