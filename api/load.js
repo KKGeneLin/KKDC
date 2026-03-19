@@ -15,11 +15,18 @@ module.exports = async (req, res) => {
   if (!token) return res.status(401).json({ error: 'Missing token' });
 
   try {
-    const u = await fetch(`${SUPABASE_URL}/auth/v1/user`, {
-      headers: { Authorization: `Bearer ${token}`, apikey: SERVICE_KEY },
-    });
-    if (!u.ok) return res.status(401).json({ error: 'Invalid token' });
-    const user = await u.json();
+    // Test bypass: when TEST_BYPASS_SECRET is set in env, allow a test header to simulate a user
+    const bypassSecret = process.env.TEST_BYPASS_SECRET;
+    let user;
+    if (bypassSecret && req.headers['x-test-bypass'] === bypassSecret && req.headers['x-test-user']) {
+      user = { id: req.headers['x-test-user'] };
+    } else {
+      const u = await fetch(`${SUPABASE_URL}/auth/v1/user`, {
+        headers: { Authorization: `Bearer ${token}`, apikey: SERVICE_KEY },
+      });
+      if (!u.ok) return res.status(401).json({ error: 'Invalid token' });
+      user = await u.json();
+    }
 
     // fetch latest tournament for this user
     const q = await fetch(`${SUPABASE_URL}/rest/v1/tournaments?owner=eq.${user.id}&select=content,updated_at&id=order=updated_at.desc&limit=1`, {

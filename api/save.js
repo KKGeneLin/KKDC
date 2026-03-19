@@ -16,14 +16,21 @@ module.exports = async (req, res) => {
 
   // Verify token to get user
   try {
-    const u = await fetch(`${SUPABASE_URL}/auth/v1/user`, {
-      headers: {
-        Authorization: `Bearer ${token}`,
-        apikey: SERVICE_KEY,
-      },
-    });
-    if (!u.ok) return res.status(401).json({ error: 'Invalid token' });
-    const user = await u.json();
+    // Test bypass: when TEST_BYPASS_SECRET is set in env, allow a test header to simulate a user
+    const bypassSecret = process.env.TEST_BYPASS_SECRET;
+    let user;
+    if (bypassSecret && req.headers['x-test-bypass'] === bypassSecret && req.headers['x-test-user']) {
+      user = { id: req.headers['x-test-user'] };
+    } else {
+      const u = await fetch(`${SUPABASE_URL}/auth/v1/user`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          apikey: SERVICE_KEY,
+        },
+      });
+      if (!u.ok) return res.status(401).json({ error: 'Invalid token' });
+      user = await u.json();
+    }
 
     const payload = req.body && typeof req.body === 'object' ? req.body : JSON.parse(req.body || '{}');
     const content = payload.data || payload;
