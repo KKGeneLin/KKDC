@@ -12,7 +12,6 @@ module.exports = async (req, res) => {
 
   const authHeader = req.headers['authorization'] || '';
   const token = authHeader.replace('Bearer ', '');
-  if (!token) return res.status(401).json({ error: 'Missing token' });
 
   try {
     // Test bypass: when TEST_BYPASS_SECRET is set in env, allow a test header to simulate a user

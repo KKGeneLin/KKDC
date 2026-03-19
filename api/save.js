@@ -12,7 +12,6 @@ module.exports = async (req, res) => {
 
   const authHeader = req.headers['authorization'] || '';
   const token = authHeader.replace('Bearer ', '');
-  if (!token) return res.status(401).json({ error: 'Missing token' });
 
   // Verify token to get user
   try {
